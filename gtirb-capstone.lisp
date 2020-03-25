@@ -12,8 +12,8 @@
   (:nicknames :gtirb-capstone)
   (:use :gt :gtirb :graph :capstone/clos :keystone/clos :stefil)
   (:shadowing-import-from :gtirb :address :bytes :symbol)
-  (:shadow :size :size-t :version :architecture :mode :copy)
-  (:export :instructions))
+  (:shadow :size :size-t :version :architecture :mode :copy :asm)
+  (:export :instructions :set-syntax :asm))
 (in-package :gtirb-capstone/gtirb-capstone)
 (in-readtable :curry-compose-reader-macros)
 
@@ -49,12 +49,25 @@
                               (:ppc32 :32))))))))
 
 (defgeneric instructions (object)
-  (:documentation "Access the assembly instructions for OBJECT."))
+  (:documentation "Access the assembly instructions for OBJECT.")
+  (:method ((object gtirb::proto-backed))
+    (destructuring-bind (cs . ks) (start-engines (ir object))
+      (declare (ignorable ks))
+      (disasm cs (bytes object)))))
 
-(defmethod instructions ((object gtirb-byte-block))
-  (destructuring-bind (cs . ks) (start-engines (ir object))
-    (declare (ignorable ks))
-    (disasm cs (bytes object))))
+(defgeneric set-syntax (object syntax)
+  (:documentation "Set the assembly instruction syntax for OBJECT.")
+  (:method ((object gtirb::proto-backed) (syntax symbol))
+    (destructuring-bind (cs . ks) (start-engines (ir object))
+      (declare (ignorable cs))
+      (set-option ks :syntax syntax))))
+
+(defgeneric asm (object code &key address)
+  (:documentation "Assemble CODE for OBJECT.")
+  (:method ((object gtirb::proto-backed) (code string) &key address)
+    (destructuring-bind (cs . ks) (start-engines (ir object))
+      (declare (ignorable cs))
+      (asm ks code :address address))))
 
 
 ;;;; Main test suite.
