@@ -8,6 +8,17 @@
 ;;; N68335-17-C-0700.  The content of the information does not necessarily
 ;;; reflect the position or policy of the Government and no official
 ;;; endorsement should be inferred.
+;;;
+;;; TODO: Implement a universal S-expr syntax for instructions which
+;;;       is able to be parsed from capstone output and printed to
+;;;       keystone input.  Use this for instructons.
+;;;
+;;; TODO: Add accesses to add/remove/replace instructions at a
+;;;       particular location in the byte range of a block.  This
+;;;       should then invoke the appropriate location-specific byte
+;;;       setter on that block, which should itself update subsequent
+;;;       offsets in the block's byte-array (e.g. symbols).
+;;;
 (defpackage :gtirb-capstone/gtirb-capstone
   (:nicknames :gtirb-capstone)
   (:use :gt :gtirb :graph :capstone/clos :keystone/clos :stefil)
