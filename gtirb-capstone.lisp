@@ -21,7 +21,7 @@
 ;;;
 (defpackage :gtirb-capstone/gtirb-capstone
   (:nicknames :gtirb-capstone)
-  (:use :gt :gtirb :graph :capstone/clos :keystone/clos :stefil)
+  (:use :gt :gtirb :graph :capstone :keystone :stefil)
   (:shadowing-import-from :gtirb :address :bytes :symbol)
   (:shadow :size :size-t :version :architecture :mode :copy :asm)
   (:export :instructions :set-syntax :asm))
