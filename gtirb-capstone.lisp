@@ -23,8 +23,11 @@
   (:nicknames :gtirb-capstone)
   (:use :gt :gtirb :graph :capstone :keystone :stefil)
   (:shadowing-import-from :gtirb :address :bytes :symbol)
-  (:shadow :size :size-t :version :architecture :mode :copy :asm)
-  (:export :instructions :set-syntax :asm :disasm))
+  (:import-from :capstone/raw :mnemonic)
+  (:shadow :size :size-t :version :architecture :mode :copy)
+  (:export :instructions :set-syntax :asm :disasm
+           ;; Capstone/raw
+           :mnemonic))
 (in-package :gtirb-capstone/gtirb-capstone)
 (in-readtable :curry-compose-reader-macros)
 
@@ -61,28 +64,31 @@
 
 (defgeneric instructions (object)
   (:documentation "Access the assembly instructions for OBJECT.")
-  (:method ((object gtirb::proto-backed))
+  (:method ((object gtirb-node))
     (destructuring-bind (cs . ks) (start-engines (ir object))
       (declare (ignorable ks))
       (disasm cs (bytes object)))))
 
 (defgeneric set-syntax (object syntax)
   (:documentation "Set the assembly instruction syntax for OBJECT.")
-  (:method ((object gtirb::proto-backed) (syntax symbol))
+  (:method ((object gtirb-node) syntax)
     (destructuring-bind (cs . ks) (start-engines (ir object))
       (declare (ignorable cs))
       (set-option ks :syntax syntax))))
 
-(defmethod asm ((object gtirb::proto-backed) (code string) &key address)
+(defmethod asm ((object gtirb-node) (code string) &key address)
   (destructuring-bind (cs . ks) (start-engines (ir object))
     (declare (ignorable cs))
     (asm ks code :address address)))
 
-(defmethod disasm
-    ((object gtirb::proto-backed) (bytes vector) &key address count)
+(defmethod disasm ((object gtirb-node) (bytes vector)
+                   &key (address nil address-p) (count nil count-p))
   (destructuring-bind (cs . ks) (start-engines (ir object))
     (declare (ignorable ks))
-    (disasm cs bytes :address address :count count)))
+    (apply #'disasm cs bytes (append (when address-p
+                                       (list :address address))
+                                     (when count-p
+                                       (list :count count))))))
 
 
 ;;;; Main test suite.
