@@ -11,7 +11,7 @@
 ;;;
 ;;; TODO: Implement a universal S-expr syntax for instructions which
 ;;;       is able to be parsed from capstone output and printed to
-;;;       keystone input.  Use this for instructons.
+;;;       keystone input.  Use this for instructions.
 ;;;
 ;;; TODO: Add accesses to add/remove/replace instructions at a
 ;;;       particular location in the byte range of a block.  This
@@ -24,7 +24,7 @@
   (:use :gt :gtirb :graph :capstone :keystone :stefil)
   (:shadowing-import-from :gtirb :address :bytes :symbol)
   (:shadow :size :size-t :version :architecture :mode :copy :asm)
-  (:export :instructions :set-syntax :asm))
+  (:export :instructions :set-syntax :asm :disasm))
 (in-package :gtirb-capstone/gtirb-capstone)
 (in-readtable :curry-compose-reader-macros)
 
@@ -73,12 +73,16 @@
       (declare (ignorable cs))
       (set-option ks :syntax syntax))))
 
-(defgeneric asm (object code &key address)
-  (:documentation "Assemble CODE for OBJECT.")
-  (:method ((object gtirb::proto-backed) (code string) &key address)
-    (destructuring-bind (cs . ks) (start-engines (ir object))
-      (declare (ignorable cs))
-      (asm ks code :address address))))
+(defmethod asm ((object gtirb::proto-backed) (code string) &key address)
+  (destructuring-bind (cs . ks) (start-engines (ir object))
+    (declare (ignorable cs))
+    (asm ks code :address address)))
+
+(defmethod disasm
+    ((object gtirb::proto-backed) (bytes vector) &key address count)
+  (destructuring-bind (cs . ks) (start-engines (ir object))
+    (declare (ignorable ks))
+    (disasm cs bytes :address address :count count)))
 
 
 ;;;; Main test suite.
