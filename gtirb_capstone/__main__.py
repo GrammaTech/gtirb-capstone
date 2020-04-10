@@ -11,10 +11,10 @@
 # reflect the position or policy of the Government and no official
 # endorsement should be inferred.
 #
-import argparse
-import logging
-from gtirb import IR
-from .rewriting import RewritingContext
+# import argparse
+# import logging
+# from gtirb import IR
+# from .rewriting import RewritingContext
 
 
 def main():
