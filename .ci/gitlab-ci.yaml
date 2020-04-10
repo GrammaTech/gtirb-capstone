@@ -1,0 +1,67 @@
+variables:
+  DOCKER_REGISTRY: "docker.grammatech.com"
+  LOCAL_IMAGE_NAME: '$CI_BUILD_REF_NAME-$CI_PIPELINE_ID'
+  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_STRATEGY: fetch
+  FORMATTER_IMAGE_NAME: '${DOCKER_REGISTRY}/${CI_PROJECT_PATH}/formatter'
+  BUILD_IMAGE_NAME: '${DOCKER_REGISTRY}/${CI_PROJECT_PATH}/build'
+
+stages:
+  - build-images
+  - check-format
+  - test
+  - build
+  - test_package
+  - cleanup
+
+build-images:
+  # rules:
+  #   only changes in .ci/Docker.formatter
+  stage: build-images
+  tags:
+    - shell-exec
+  script:
+    - docker build -t $FORMATTER_IMAGE_NAME -f .ci/Dockerfile.formatter .
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $DOCKER_REGISTRY
+    - docker push $FORMATTER_IMAGE_NAME
+    - docker build -t $BUILD_IMAGE_NAME -f .ci/Dockerfile.build .
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $DOCKER_REGISTRY
+    - docker push $BUILD_IMAGE_NAME
+
+check-format:
+  stage: check-format
+  tags:
+    - docker-exec
+  image: $FORMATTER_IMAGE_NAME
+  script:
+    - pre-commit run --all-files
+
+test:
+  stage: test
+  tags:
+    - docker-exec
+  image: $BUILD_IMAGE_NAME
+  script:
+    - python3 setup.py test
+
+build:
+  stage: build
+  tags:
+    - docker-exec
+  image: $BUILD_IMAGE_NAME
+  artifacts:
+    paths:
+    - dist/gtirb_captsone-?.?.?-py3-none-any.whl
+    expire_in: 1 weeks
+  script:
+    - python3 setup.py sdist bdist_wheel
+
+test_package:
+  variables:
+    GIT_STRATEGY: none
+  stage: test_package
+  tags:
+    - docker-exec
+  image: $BUILD_IMAGE_NAME
+  script:
+    - for f in dist/*.whl; do python3 -m pip install $f; done
