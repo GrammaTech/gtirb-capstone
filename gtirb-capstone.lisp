@@ -21,10 +21,10 @@
 ;;;
 (defpackage :gtirb-capstone/gtirb-capstone
   (:nicknames :gtirb-capstone)
-  (:use :gt :gtirb :graph :capstone :keystone :stefil)
+  (:use :gt :gtirb :gtirb-functions :graph :capstone :keystone :stefil)
   (:shadowing-import-from :gtirb :address :bytes :symbol)
   (:import-from :capstone/raw :mnemonic)
-  (:shadow :size :size-t :version :architecture :mode :copy)
+  (:shadow :size :size-t :version :architecture :mode :copy :test)
   (:export :instructions :set-syntax :asm :disasm
            ;; Capstone/raw
            :mnemonic))
@@ -67,7 +67,15 @@
   (:method ((object gtirb-node))
     (destructuring-bind (cs . ks) (start-engines (ir object))
       (declare (ignorable ks))
-      (disasm cs (bytes object)))))
+      (disasm cs (bytes object))))
+  (:method ((func func))
+    (nest (apply #'concatenate 'vector)
+          (mapcar #'instructions)
+          (mapcar {get-uuid _ (ir func)})
+          (graph:topological-sort)
+          (graph:subgraph (cfg (ir func)))
+          (mapcar #'uuid)
+          (blocks func))))
 
 (defgeneric set-syntax (object syntax)
   (:documentation "Set the assembly instruction syntax for OBJECT.")
