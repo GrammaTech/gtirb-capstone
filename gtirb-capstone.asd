@@ -28,5 +28,3 @@ transparent access to instructions in GTIRB instances."
     :defsystem-depends-on (:asdf-package-system)
     :perform
     (test-op (o c) (symbol-call :gtirb-capstone/gtirb-capstone '#:test)))
-
-(register-system-packages "capstone" '(:capstone/raw))

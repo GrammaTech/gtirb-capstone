@@ -23,11 +23,8 @@
   (:nicknames :gtirb-capstone)
   (:use :gt :gtirb :gtirb-functions :graph :capstone :keystone :stefil)
   (:shadowing-import-from :gtirb :address :bytes :symbol)
-  (:import-from :capstone/raw :mnemonic)
   (:shadow :size :size-t :version :architecture :mode :copy :test)
-  (:export :instructions :set-syntax :asm :disasm
-           ;; Capstone/raw
-           :mnemonic))
+  (:export :instructions :set-syntax :asm :disasm :mnemonic))
 (in-package :gtirb-capstone/gtirb-capstone)
 (in-readtable :curry-compose-reader-macros)
 
