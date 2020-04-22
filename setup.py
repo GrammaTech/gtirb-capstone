@@ -25,7 +25,7 @@ if __name__ == "__main__":
         name="gtirb-capstone",
         version="0.1.0",
         author="Grammatech",
-        author_email="",
+        author_email="gtirb@grammatech.com",
         description="Utilities for rewriting GTIRB with capstone and keystone",
         package_data={"gtirb_capstone": ["gtirb_capstone/*.py"]},
         packages=find_packages(),
