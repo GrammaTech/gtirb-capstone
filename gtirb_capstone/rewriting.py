@@ -49,7 +49,8 @@ class RewritingContext(object):
             # Remove CFI directives, since we will most likely be
             # invalidating most (or all) of them.
             # TODO: can we not do this?
-            m.aux_data.pop("cfiDirectives")
+            if "cfiDirectives" in m.aux_data:
+                del m.aux_data["cfiDirectives"]
 
     def isolate_byte_interval(self, module, block):
         """Creates a new byte interval that consists of a single existing
@@ -135,10 +136,16 @@ class RewritingContext(object):
     def show_block_asm(self, block, logger=logging.Logger("null")):
         """Disassemble and print the contents of a code block."""
 
-        bytes = block.byte_interval.contents[
-            block.offset : block.offset + block.size
-        ]
+        addr = (
+            block.byte_interval.address
+            if block.byte_interval.address is not None
+            else 0
+        )
+
         for i in self.cp.disasm(
-            bytes, block.byte_interval.address + block.offset
+            block.byte_interval.contents[
+                block.offset : block.offset + block.size
+            ],
+            addr + block.offset,
         ):
             logger.debug("\t0x%x:\t%s\t%s" % (i.address, i.mnemonic, i.op_str))
