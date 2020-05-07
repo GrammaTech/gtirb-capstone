@@ -32,7 +32,4 @@ if __name__ == "__main__":
         test_suite="setup.gtirb_capstone_test_suite",
         install_requires=["gtirb", "capstone", "keystone-engine"],
         classifiers=["Programming Language :: Python :: 3"],
-        entry_points={
-            "console_scripts": ["captsone = capstone.__main__:main"]
-        },
     )
