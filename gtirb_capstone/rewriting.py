@@ -41,16 +41,16 @@ class RewritingContext(object):
     # This is neccessary to facilitate proper layout of fallthrough edges when
     # we start modifying byte_intervals
     def prepare_for_rewriting(self):
-        # Split byte intervals such that there is a single interval per
-        # codeblock.  This allows each to be updated independently.
         for m in self.ir.modules:
+            # Split byte intervals such that there is a single interval per
+            # codeblock.  This allows each to be updated independently.
             code_blocks = [b for b in m.code_blocks]
             for b in code_blocks:
                 if b.offset != 0 or b.size != b.byte_interval.size:
                     self.isolate_byte_interval(m, b)
-        # Remove CFI directives for now since we will most likely be
-        # invalidating most (or all) of them.
-        m.aux_data.pop("cfiDirectives")
+            # Remove CFI directives for now since we will most likely be
+            # invalidating most (or all) of them.
+            m.aux_data.pop("cfiDirectives")
 
     def isolate_byte_interval(self, module, block):
         section = block.byte_interval.section
