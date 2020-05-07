@@ -10,14 +10,16 @@
 # endorsement should be inferred.
 #
 import capstone
-from gtirb import ByteInterval
+from gtirb import ByteInterval, Offset
 import keystone
 import logging
 
 
-# Simple class to carry around our ir and associated capstone/keystone objects
-# for use in rewriting that IR
 class RewritingContext(object):
+    """Simple class to carry around our ir and associated capstone/keystone
+    objects for use in rewriting that IR.
+    """
+
     cp = None
     ks = None
     ir = None
@@ -37,22 +39,27 @@ class RewritingContext(object):
             self.ks = ks
         self.prepare_for_rewriting()
 
-    # Split byte-intervals such that each CodeBlock has it's own byte_interval
-    # This is neccessary to facilitate proper layout of fallthrough edges when
-    # we start modifying byte_intervals
     def prepare_for_rewriting(self):
+        """Prepare an IR for rewriting using gtirb-capstone.
+
+        Call this before you call any other method.
+        """
+
         for m in self.ir.modules:
-            # Split byte intervals such that there is a single interval per
-            # codeblock.  This allows each to be updated independently.
-            code_blocks = [b for b in m.code_blocks]
-            for b in code_blocks:
-                if b.offset != 0 or b.size != b.byte_interval.size:
-                    self.isolate_byte_interval(m, b)
-            # Remove CFI directives for now since we will most likely be
+            # Remove CFI directives, since we will most likely be
             # invalidating most (or all) of them.
+            # TODO: can we not do this?
             m.aux_data.pop("cfiDirectives")
 
     def isolate_byte_interval(self, module, block):
+        """Creates a new byte interval that consists of a single existing
+        block.
+        """
+
+        # TODO: we should remove this function if no users depend on it;
+        # it was used in previous versions of this library, but now isn't,
+        # but is technically a public method, so...
+
         section = block.byte_interval.section
         bi = block.byte_interval
         new_bi = ByteInterval(
@@ -79,32 +86,55 @@ class RewritingContext(object):
     def modify_block_insert(
         self, module, block, new_bytes, offset, logger=logging.Logger("null")
     ):
+        """Insert bytes into a block."""
+
         logger.debug("  Before:")
         self.show_block_asm(block, logger=logger)
 
+        n_bytes = len(new_bytes)
         bi = block.byte_interval
-        sect = block.byte_interval.section
-        new_contents = (
+
+        # adjust block itself
+        block.size += n_bytes
+
+        # adjust byte interval the block goes in
+        bi.size += n_bytes
+        bi.contents = (
             bi.contents[:offset] + bytes(new_bytes) + bi.contents[offset:]
         )
-        new_bi = ByteInterval(
-            contents=new_contents, address=bi.address + block.offset
-        )
-        new_bi.section = sect
-        for se_offset, se in bi.symbolic_expressions.items():
-            if se_offset < offset:
-                new_bi.symbolic_expressions[se_offset] = se
-            else:
-                new_bi.symbolic_expressions[se_offset + len(new_bytes)] = se
 
-        block.byte_interval = new_bi
-        block.offset = 0
-        block.size = new_bi.size
+        # adjust blocks that occur after the insertion point
+        # TODO: what if blocks overlap over the insertion point?
+        for b in bi.blocks:
+            if b.offset >= offset:
+                b.offset += n_bytes
 
+        # adjust sym exprs that occur after the insertion point
+        bi.symbolic_expressions = {
+            (k + n_bytes if k >= offset else k): v
+            for k, v in bi.symbolic_expressions.items()
+        }
+
+        # adjust aux data if present
+        # TODO: what other aux data uses byte interval offsets?
+        sym_expr_sizes = bi.module.aux_data.get("symbolicExpressionSizes")
+        if sym_expr_sizes is not None:
+            sym_expr_sizes.data = {
+                (
+                    Offset(bi, k.displacement + n_bytes)
+                    if k.element_id == bi and k.displacement >= offset
+                    else k
+                ): v
+                for k, v in sym_expr_sizes.data.items()
+            }
+
+        # all done
         logger.debug("  After:")
         self.show_block_asm(block, logger=logger)
 
     def show_block_asm(self, block, logger=logging.Logger("null")):
+        """Disassemble and print the contents of a code block."""
+
         bytes = block.byte_interval.contents[
             block.offset : block.offset + block.size
         ]
