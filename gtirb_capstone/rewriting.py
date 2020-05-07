@@ -89,6 +89,8 @@ class RewritingContext(object):
     ):
         """Insert bytes into a block."""
 
+        offset += block.offset
+
         logger.debug("  Before:")
         self.show_block_asm(block, logger=logger)
 

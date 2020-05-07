@@ -30,7 +30,7 @@ class CapstoneTest(unittest.TestCase):
         bi.symbolic_expressions[6] = gtirb.SymAddrConst(0, None)
 
         ctx = gtirb_capstone.RewritingContext(ir)
-        ctx.modify_block_insert(m, b, b"\x08\x09", 3)
+        ctx.modify_block_insert(m, b, b"\x08\x09", 1)
 
         self.assertEqual(bi.size, 10)
         self.assertEqual(
