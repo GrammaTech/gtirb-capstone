@@ -22,7 +22,12 @@ if __name__ == "__main__":
         description="Utilities for rewriting GTIRB with capstone and keystone",
         package_data={"gtirb_capstone": ["gtirb_capstone/*.py"]},
         packages=find_packages(),
-        install_requires=["gtirb", "capstone", "keystone-engine"],
+        install_requires=[
+            "capstone",
+            "dataclasses",
+            "gtirb",
+            "keystone-engine",
+        ],
         classifiers=["Programming Language :: Python :: 3"],
         extras_require={
             "test": [
