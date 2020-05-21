@@ -75,7 +75,7 @@ class GtirbInstructionDecoder:
         Get capstone instructions of a basic block.
         """
         if self._arch == gtirb.Module.ISA.ARM:
-            if block.decode_mode:
+            if block.decode_mode == 1:
                 self._cs.mode = capstone.CS_MODE_THUMB
             else:
                 self._cs.mode = capstone.CS_MODE_ARM
