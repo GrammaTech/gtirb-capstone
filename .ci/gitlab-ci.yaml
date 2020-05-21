@@ -42,7 +42,7 @@ test:
     - docker-exec
   image: $BUILD_IMAGE_NAME
   script:
-    - python3 setup.py test
+    - tox
 
 build:
   stage: build

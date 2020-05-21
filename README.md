@@ -15,6 +15,41 @@ multiple ISAs and are widely used.  GTIRB-Capstone integrates GTIRB
 with the Capstone disassembler and the Keystone assembler allowing for
 transparent access to instructions in GTIRB instances.
 
+## Dependencies
+
+This package requires:
+
+ - [keystone](https://github.com/keystone-engine/keystone.git)
+   To install keystone run:
+   ```
+   git clone https://github.com/keystone-engine/keystone.git
+   cd keystone
+   mkdir build
+   cd build
+   ../make-share.sh
+   make install
+   ldconfig
+   ```
+
+## Development
+You can create a virtual environment for development using tox:
+```
+tox -e venv
+. venv/bin/activate
+``
+
+This repository uses pre-commit to enforce code formatting. You should
+have pre-commit installed. To activate pre-commit in this repository run:
+
+```
+pre-commit install
+```
+
+To run the tests execute tox:
+```
+tox
+```
+
 ## Copyright and Acknowledgments
 
 Copyright (C) 2020 GrammaTech, Inc.

@@ -11,13 +11,6 @@
 # endorsement should be inferred.
 #
 from setuptools import setup, find_packages
-import unittest
-
-
-def gtirb_capstone_test_suite():
-    test_loader = unittest.TestLoader()
-    test_suite = test_loader.discover("tests", pattern="test_*.py")
-    return test_suite
 
 
 if __name__ == "__main__":
@@ -29,7 +22,17 @@ if __name__ == "__main__":
         description="Utilities for rewriting GTIRB with capstone and keystone",
         package_data={"gtirb_capstone": ["gtirb_capstone/*.py"]},
         packages=find_packages(),
-        test_suite="setup.gtirb_capstone_test_suite",
         install_requires=["gtirb", "capstone", "keystone-engine"],
         classifiers=["Programming Language :: Python :: 3"],
+        extras_require={
+            "test": [
+                "flake8",
+                "isort",
+                "pytest",
+                "pytest-cov",
+                "tox",
+                "tox-wheel",
+                "pre-commit",
+            ]
+        },
     )
