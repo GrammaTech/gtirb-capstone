@@ -4,7 +4,6 @@ RUN apt-get install -y python3-pip && \
     python3 -m pip install --upgrade setuptools wheel
 
 WORKDIR /gt/gtirb/build/python
-RUN python3 setup.py develop
 
 RUN cd /tmp && \
     git clone https://github.com/keystone-engine/keystone.git && \
