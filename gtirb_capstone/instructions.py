@@ -129,12 +129,12 @@ class GtirbInstructionDecoder:
         return AccessType.UNKNOWN
 
     GTIRB_ISA_TO_CAPSTONE_MEM_OP = {
-        gtirb.Module.ISA.ARM: capstone.arm.ArmOpMem,
-        gtirb.Module.ISA.ARM64: capstone.arm64.Arm64OpMem,
-        gtirb.Module.ISA.MIPS32: capstone.mips.MipsOpMem,
-        gtirb.Module.ISA.MIPS64: capstone.mips.MipsOpMem,
-        gtirb.Module.ISA.PPC32: capstone.ppc.PpcOpMem,
-        gtirb.Module.ISA.PPC64: capstone.ppc.PpcOpMem,
+        gtirb.Module.ISA.ARM: capstone.arm.ARM_OP_MEM,
+        gtirb.Module.ISA.ARM64: capstone.arm64.ARM64_OP_MEM,
+        gtirb.Module.ISA.MIPS32: capstone.mips.MIPS_OP_MEM,
+        gtirb.Module.ISA.MIPS64: capstone.mips.MIPS_OP_MEM,
+        gtirb.Module.ISA.PPC32: capstone.ppc.PPC_OP_MEM,
+        gtirb.Module.ISA.PPC64: capstone.ppc.PPC_OP_MEM,
         gtirb.Module.ISA.IA32: capstone.x86.X86_OP_MEM,
         gtirb.Module.ISA.X64: capstone.x86.X86_OP_MEM,
     }
@@ -146,16 +146,27 @@ class GtirbInstructionDecoder:
         Get memory accesses of a basic block.
         Each memory access has an addr, an access type and the
         capstone memory operand.
+
+        NOTE: The address of the memory access is the address
+        of the displacement in x86/x64 but it is the address
+        of the instruction in all other architectures.
         """
 
         mem_type = self.GTIRB_ISA_TO_CAPSTONE_MEM_OP[self._arch]
+
         memory_accesses = []
         for insn in self.get_instructions(block):
+            # FIXME find out displacement offsets in other architectures
+            disp_offset = (
+                insn.disp_offset
+                if self._arch in [gtirb.Module.ISA.IA32, gtirb.Module.ISA.X64]
+                else 0
+            )
             for op in insn.operands:
                 if op.type == mem_type:
                     memory_accesses.append(
                         MemoryAccess(
-                            addr=insn.address + insn.disp_offset,
+                            addr=insn.address + disp_offset,
                             type=self.get_access_type(op),
                             op_mem=op.mem,
                         )
