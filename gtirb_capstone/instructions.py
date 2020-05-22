@@ -13,8 +13,12 @@
 import gtirb
 import capstone
 import capstone.x86
+import capstone.arm64
+import capstone.arm
+import capstone.mips
+import capstone.ppc
 from enum import Enum
-from typing import Iterator, List, Optional
+from typing import Iterator, List, Union
 from dataclasses import dataclass
 
 
@@ -25,11 +29,30 @@ class AccessType(Enum):
     READ_WRITE = "read_write"
 
 
+# Union of all possible operands
+CapstoneOp = Union[
+    capstone.x86.X86Op,
+    capstone.arm.ArmOp,
+    capstone.arm64.Arm64Op,
+    capstone.mips.MipsOp,
+    capstone.ppc.PpcOp,
+]
+# Union of all possible memory operands
+CapstoneMemoryAccess = Union[
+    capstone.x86.X86OpMem,
+    capstone.arm.ArmOpMem,
+    capstone.arm64.Arm64OpMem,
+    capstone.mips.MipsOpMem,
+    capstone.ppc.PpcOpMem,
+]
+
+
 @dataclass
 class MemoryAccess:
     addr: int
     type: AccessType
-    dest: Optional[int]
+    # the memory operand
+    op_mem: CapstoneMemoryAccess
 
 
 class GtirbInstructionDecoder:
@@ -73,6 +96,8 @@ class GtirbInstructionDecoder:
     ) -> Iterator[capstone.CsInsn]:
         """
         Get capstone instructions of a basic block.
+        Note: This function gets raw instructions, without
+        taking into account symbolic expressions.
         """
         if self._arch == gtirb.Module.ISA.ARM:
             if block.decode_mode == 1:
@@ -91,46 +116,48 @@ class GtirbInstructionDecoder:
             addr + block.offset,
         )
 
+    def get_access_type(self, op: CapstoneOp) -> AccessType:
+        """
+        Get the capstone operand's access type.
+        """
+        if op.access == capstone.CS_AC_READ:
+            return AccessType.READ
+        elif op.access == capstone.CS_AC_WRITE:
+            return AccessType.WRITE
+        elif op.access == capstone.CS_AC_READ | capstone.CS_AC_WRITE:
+            return AccessType.READ_WRITE
+        return AccessType.UNKNOWN
+
+    GTIRB_ISA_TO_CAPSTONE_MEM_OP = {
+        gtirb.Module.ISA.ARM: capstone.arm.ArmOpMem,
+        gtirb.Module.ISA.ARM64: capstone.arm64.Arm64OpMem,
+        gtirb.Module.ISA.MIPS32: capstone.mips.MipsOpMem,
+        gtirb.Module.ISA.MIPS64: capstone.mips.MipsOpMem,
+        gtirb.Module.ISA.PPC32: capstone.ppc.PpcOpMem,
+        gtirb.Module.ISA.PPC64: capstone.ppc.PpcOpMem,
+        gtirb.Module.ISA.IA32: capstone.x86.X86_OP_MEM,
+        gtirb.Module.ISA.X64: capstone.x86.X86_OP_MEM,
+    }
+
     def get_memory_accesses(
         self, block: gtirb.CodeBlock
     ) -> List[MemoryAccess]:
         """
         Get memory accesses of a basic block.
-        Each memory access has an addr, an access type and
-        optionally a destination if the access is done with
-        only a hard-coded address (without registers).
+        Each memory access has an addr, an access type and the
+        capstone memory operand.
         """
-        if self._arch not in [gtirb.Module.ISA.X64, gtirb.Module.ISA.IA32]:
-            raise NotImplementedError(
-                f"Memory accesses not available for ISA {self._arch}"
-            )
+
+        mem_type = self.GTIRB_ISA_TO_CAPSTONE_MEM_OP[self._arch]
         memory_accesses = []
         for insn in self.get_instructions(block):
             for op in insn.operands:
-                if op.type == capstone.x86.X86_OP_MEM:
-                    access_type = AccessType.UNKNOWN
-                    if op.access == capstone.CS_AC_READ:
-                        access_type = AccessType.READ
-                    elif op.access == capstone.CS_AC_WRITE:
-                        access_type = AccessType.WRITE
-                    elif (
-                        op.access == capstone.CS_AC_READ | capstone.CS_AC_WRITE
-                    ):
-                        access_type = AccessType.READ_WRITE
-
-                    if (
-                        op.mem.base == 0
-                        and op.mem.index == 0
-                        and op.mem.segment == 0
-                    ):
-                        dest = op.mem.disp
-                    else:
-                        dest = None
+                if op.type == mem_type:
                     memory_accesses.append(
                         MemoryAccess(
                             addr=insn.address + insn.disp_offset,
-                            type=access_type,
-                            dest=dest,
+                            type=self.get_access_type(op),
+                            op_mem=op.mem,
                         )
                     )
         return memory_accesses

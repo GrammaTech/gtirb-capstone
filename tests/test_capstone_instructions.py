@@ -47,6 +47,7 @@ def test_x64_data_access():
     assert len(data_accesses) == 2
     assert data_accesses[0].type == AccessType.READ
     assert data_accesses[1].type == AccessType.WRITE
+    assert data_accesses[0].op_mem.disp == 0x200B44
 
 
 @pytest.mark.commit
