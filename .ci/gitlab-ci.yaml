@@ -12,6 +12,7 @@ stages:
   - test
   - build
   - test_package
+  - deploy
   - cleanup
 
 build-images:
@@ -65,3 +66,22 @@ test_package:
   image: $BUILD_IMAGE_NAME
   script:
     - for f in dist/*.whl; do python3 -m pip install $f; done
+
+pypi:
+  stage: deploy
+  tags:
+    - docker-exec
+  image: $BUILD_IMAGE_NAME
+  only:
+    - master
+  script:
+    - python3 setup.py develop
+    - VERSION=$(python3 -c "import gtirb_capstone; print(gtirb_capstone.__version__)")
+    - RESPONSE_CODE=$(curl -Ls -o /dev/null -w "%{http_code}" https://pypi.org/project/gtirb-capstone/${VERSION}/)
+    - if [ "$RESPONSE_CODE" = "404" ];
+      then
+        pip3 install twine --upgrade;
+        python3 setup.py sdist bdist_wheel;
+        twine check dist/*;
+        twine upload dist/* -u __token__ -p $PYPI_API_KEY;
+      fi

@@ -10,18 +10,25 @@
 # reflect the position or policy of the Government and no official
 # endorsement should be inferred.
 #
-from setuptools import setup, find_packages
+import imp
+import setuptools
 
+
+__version__ = imp.load_source(
+    "pkginfo.version", "gtirb_capstone/version.py"
+).__version__
 
 if __name__ == "__main__":
-    setup(
+    with open("README.md", "r") as fh:
+        long_description = fh.read()
+
+    setuptools.setup(
         name="gtirb-capstone",
-        version="0.1.0",
+        version=__version__,
         author="Grammatech",
         author_email="gtirb@grammatech.com",
         description="Utilities for rewriting GTIRB with capstone and keystone",
-        package_data={"gtirb_capstone": ["gtirb_capstone/*.py"]},
-        packages=find_packages(),
+        packages=setuptools.find_packages(),
         install_requires=[
             "capstone",
             "dataclasses",
@@ -40,4 +47,8 @@ if __name__ == "__main__":
                 "pre-commit",
             ]
         },
+        long_description=long_description,
+        long_description_content_type="text/markdown",
+        url="https://github.com/grammatech/gtirb-functions",
+        license="MIT",
     )

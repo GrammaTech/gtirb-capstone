@@ -10,6 +10,7 @@
 # reflect the position or policy of the Government and no official
 # endorsement should be inferred.
 #
-__all__ = ["RewritingContext"]
+__all__ = ["RewritingContext", "__version__"]
 
 from .rewriting import RewritingContext
+from .version import __version__
