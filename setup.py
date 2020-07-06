@@ -31,7 +31,7 @@ if __name__ == "__main__":
         packages=setuptools.find_packages(),
         install_requires=[
             "capstone",
-            "dataclasses",
+            "dataclasses ; python_version<'3.7.0'",
             "gtirb",
             "keystone-engine",
         ],
