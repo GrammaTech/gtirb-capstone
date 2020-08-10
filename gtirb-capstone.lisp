@@ -24,6 +24,8 @@
   (:use :gt :gtirb :graph :capstone :keystone :stefil)
   (:shadowing-import-from :gtirb :address :bytes :symbol)
   (:shadow :size :size-t :version :architecture :mode :copy :test)
+  (:shadowing-import-from :cffi :foreign-enum-value)
+  (:shadowing-import-from :capstone/raw :cs-mode)
   (:export :instructions :set-syntax :asm :disasm :mnemonic))
 (in-package :gtirb-capstone/gtirb-capstone)
 (in-readtable :curry-compose-reader-macros)
@@ -41,23 +43,30 @@
                                       (:x64 :x86)
                                       (:ia32 :x86)
                                       (:arm :arm)
-                                      (:ppc32 :ppc))
+                                      (:ppc32 :ppc)
+                                      (:ppc64 :ppc))
                       :mode (ecase (isa (first (modules object)))
                               (:x64 :64)
                               (:ia32 :32)
                               (:arm :arm)
-                              (:ppc32 :32)))
+                              (:ppc32 (+ (foreign-enum-value 'cs-mode :big_endian)
+                                         (foreign-enum-value 'cs-node :32)))
+                              (:ppc64 :64)))
+
                     (make-instance 'keystone-engine
                       :architecture (ecase (isa (first (modules object)))
                                       (:x64 :x86)
                                       (:ia32 :x86)
                                       (:arm :arm)
-                                      (:ppc32 :ppc))
+                                      (:ppc32 :ppc)
+                                      (:ppc64 :ppc))
                       :mode (ecase (isa (first (modules object)))
                               (:x64 :64)
                               (:ia32 :32)
                               (:arm :arm)
-                              (:ppc32 :32))))))))
+                              (:ppc32 :ppc64)
+                              (:ppc64 :ppc64)
+                              )))))))
 
 (defgeneric instructions (object)
   (:documentation "Access the assembly instructions for OBJECT.")
@@ -86,7 +95,6 @@
                                        (list :address address))
                                      (when count-p
                                        (list :count count))))))
-
 
 ;;;; Main test suite.
 (defsuite test)
