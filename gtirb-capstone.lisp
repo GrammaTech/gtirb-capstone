@@ -50,7 +50,7 @@
                               (:ia32 :32)
                               (:arm :arm)
                               (:ppc32 (+ (foreign-enum-value 'cs-mode :big_endian)
-                                         (foreign-enum-value 'cs-node :32)))
+                                         (foreign-enum-value 'cs-mode :32)))
                               (:ppc64 :64)))
 
                     (make-instance 'keystone-engine
