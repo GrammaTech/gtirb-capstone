@@ -26,6 +26,7 @@
   (:shadow :size :size-t :version :architecture :mode :copy :test)
   (:shadowing-import-from :cffi :foreign-enum-value)
   (:shadowing-import-from :capstone/raw :cs-mode)
+  (:shadowing-import-from :keystone/raw :ks-mode)
   (:export :instructions :set-syntax :asm :disasm :mnemonic))
 (in-package :gtirb-capstone/gtirb-capstone)
 (in-readtable :curry-compose-reader-macros)
@@ -36,6 +37,7 @@
 (defgeneric start-engines (object)
   (:documentation "Startup Capstone and Keystone engines for OBJECT.")
   (:method ((object gtirb))
+    
     (or (gethash (uuid object) *engines*)
         (setf (gethash (uuid object) *engines*)
               (cons (make-instance 'capstone-engine
@@ -49,6 +51,9 @@
                               (:x64 :64)
                               (:ia32 :32)
                               (:arm :arm)
+                              ;; We must break abstraction to get an integer
+                              ;; that is not the value of any single enum
+                              ;; in the enum type cs-mode.
                               (:ppc32 (+ (foreign-enum-value 'cs-mode :big_endian)
                                          (foreign-enum-value 'cs-mode :32)))
                               (:ppc64 :64)))
@@ -64,7 +69,14 @@
                               (:x64 :64)
                               (:ia32 :32)
                               (:arm :arm)
-                              (:ppc32 :ppc64)
+                              ;; We must break abstraction to get an integer
+                              ;; that is not the value of any single enum
+                              ;; in the enum type ls-mode.
+                              ;
+                              ;; Attempting to use just :ppc32 as a mode with
+                              ;; keystone fails; the endianness must be specified
+                              (:ppc32 (+ (foreign-enum-value 'ks-mode :ppc32)
+                                         (foreign-enum-value 'ks-mode :big_endian)))
                               (:ppc64 :ppc64)
                               )))))))
 
