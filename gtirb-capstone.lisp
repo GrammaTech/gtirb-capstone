@@ -24,8 +24,6 @@
   (:use :gt :gtirb :graph :capstone :keystone :stefil)
   (:shadowing-import-from :gtirb :address :bytes :symbol)
   (:shadow :size :size-t :version :architecture :mode :copy :test)
-  (:shadowing-import-from :cffi :foreign-enum-value)
-  (:shadowing-import-from :keystone/raw :ks-mode)
   (:export :instructions :set-syntax :asm :disasm :mnemonic))
 (in-package :gtirb-capstone/gtirb-capstone)
 (in-readtable :curry-compose-reader-macros)
@@ -63,14 +61,7 @@
                               (:x64 :64)
                               (:ia32 :32)
                               (:arm :arm)
-                              ;; We must break abstraction to get an integer
-                              ;; that is not the value of any single enum
-                              ;; in the enum type ls-mode.
-                              ;
-                              ;; Attempting to use just :ppc32 as a mode with
-                              ;; keystone fails; the endianness must be specified
-                              (:ppc32 (+ (foreign-enum-value 'ks-mode :ppc32)
-                                         (foreign-enum-value 'ks-mode :big_endian)))
+                              (:ppc32 '(:ppc32 :big_endian))
                               (:ppc64 :ppc64)
                               )))))))
 
