@@ -9,11 +9,11 @@
 ;;; reflect the position or policy of the Government and no official
 ;;; endorsement should be inferred.
 (defsystem "gtirb-capstone"
-  :name "gtirb-capstone"
-  :author "GrammaTech"
-  :licence "MIT"
-  :description "Integration between GTIRB and the Capstone/Keystone libraries"
-  :long-description "GTIRB explicitly does not include any notion of
+    :name "gtirb-capstone"
+    :author "GrammaTech"
+    :licence "MIT"
+    :description "Integration between GTIRB and the Capstone/Keystone libraries"
+    :long-description "GTIRB explicitly does not include any notion of
 instructions or instruction semantics.  In general this is desirable
 as most tools have their own intermediate languages and corresponding
 encoders/decoders to deal with instructions.  However, in many cases
@@ -23,8 +23,8 @@ transformation.  These libraries provide exceptional coverage of
 multiple ISAs and are widely used.  GTIRB-Capstone integrates GTIRB
 with the Capstone disassembler and the Keystone assembler allowing for
 transparent access to instructions in GTIRB instances."
-  :depends-on (:gtirb-capstone/gtirb-capstone)
-  :class :package-inferred-system
-  :defsystem-depends-on (:asdf-package-system)
-  :perform
-  (test-op (o c) (symbol-call :gtirb-capstone/gtirb-capstone '#:test)))
+    :depends-on (:gtirb-capstone/gtirb-capstone)
+    :class :package-inferred-system
+    :defsystem-depends-on (:asdf-package-system)
+    :perform
+    (test-op (o c) (symbol-call :gtirb-capstone/gtirb-capstone '#:test)))
