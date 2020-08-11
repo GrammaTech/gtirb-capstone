@@ -25,7 +25,6 @@
   (:shadowing-import-from :gtirb :address :bytes :symbol)
   (:shadow :size :size-t :version :architecture :mode :copy :test)
   (:shadowing-import-from :cffi :foreign-enum-value)
-  (:shadowing-import-from :capstone/raw :cs-mode)
   (:shadowing-import-from :keystone/raw :ks-mode)
   (:export :instructions :set-syntax :asm :disasm :mnemonic))
 (in-package :gtirb-capstone/gtirb-capstone)
@@ -37,7 +36,6 @@
 (defgeneric start-engines (object)
   (:documentation "Startup Capstone and Keystone engines for OBJECT.")
   (:method ((object gtirb))
-    
     (or (gethash (uuid object) *engines*)
         (setf (gethash (uuid object) *engines*)
               (cons (make-instance 'capstone-engine
@@ -51,11 +49,7 @@
                               (:x64 :64)
                               (:ia32 :32)
                               (:arm :arm)
-                              ;; We must break abstraction to get an integer
-                              ;; that is not the value of any single enum
-                              ;; in the enum type cs-mode.
-                              (:ppc32 (+ (foreign-enum-value 'cs-mode :big_endian)
-                                         (foreign-enum-value 'cs-mode :32)))
+                              (:ppc32 '(:big_endian :32))
                               (:ppc64 :64)))
 
                     (make-instance 'keystone-engine
