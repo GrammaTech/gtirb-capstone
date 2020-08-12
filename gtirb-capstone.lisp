@@ -62,8 +62,7 @@
                               (:ia32 :32)
                               (:arm :arm)
                               (:ppc32 '(:ppc32 :big_endian))
-                              (:ppc64 :ppc64)
-                              )))))))
+                              (:ppc64 :ppc64))))))))
 
 (defgeneric instructions (object)
   (:documentation "Access the assembly instructions for OBJECT.")
