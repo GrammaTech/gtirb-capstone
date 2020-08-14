@@ -22,9 +22,7 @@ def test_insert_bytes():
     m.ir = ir
     s = gtirb.Section(name=".text")
     s.module = m
-    bi = gtirb.ByteInterval(
-        contents=b"\x00\x01\x02\x03\x04\x05\x06\x07", address=0x1000
-    )
+    bi = gtirb.ByteInterval(contents=b"\x00\x01\x02\x03\x04\x05\x06\x07")
     bi.section = s
     b = gtirb.CodeBlock(offset=2, size=2)
     b.byte_interval = bi
@@ -33,7 +31,6 @@ def test_insert_bytes():
     bi.symbolic_expressions[6] = gtirb.SymAddrConst(0, None)
     ctx = gtirb_capstone.RewritingContext(ir)
     ctx.modify_block_insert(m, b, b"\x08\x09", 1)
-    assert bi.address == 0x1000
     assert bi.size == 10
     assert bi.contents == b"\x00\x01\x02\x08\x09\x03\x04\x05\x06\x07"
     assert b.offset == 2

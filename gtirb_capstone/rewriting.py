@@ -48,6 +48,12 @@ class RewritingContext(object):
         """
 
         for m in self.ir.modules:
+            # Remove addresses from byte intervals, because some of them
+            # will grow as part of this operation, and we don't want them
+            # to overlap as a result.
+            for bi in m.byte_intervals:
+                bi.address = None
+
             # Remove CFI directives, since we will most likely be
             # invalidating most (or all) of them.
             # TODO: can we not do this?
