@@ -13,7 +13,6 @@ stages:
   - build
   - test_package
   - deploy
-  - cleanup
 
 default:
   image: $DOCKER_REGISTRY/rewriting/gtirb-capstone
@@ -49,7 +48,7 @@ test_package:
   script:
     - for f in dist/*.whl; do python3 -m pip install $f; done
 
-pypi:
+external-pypi:
   stage: deploy
   only:
     - master
@@ -63,4 +62,22 @@ pypi:
         python3 setup.py sdist bdist_wheel;
         twine check dist/*;
         twine upload dist/* -u __token__ -p $PYPI_API_KEY;
+      fi
+
+internal-pypi:
+  stage: deploy
+  # TODO: remove before this hits master
+  # only:
+  #  - master
+  script:
+    - pip3 install twine wheel setuptools --upgrade
+    - rm -rf build dist *.egg-info
+    - python3 setup.py sdist bdist_wheel
+    - twine check dist/*
+    - echo 0 > exitcode.txt
+    - (twine upload --verbose --repository-url $CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/pypi --username gitlab-ci-token --password "$CI_JOB_TOKEN" dist/* | tee response.txt) || (echo $? > exitcode.txt; exit 0)
+    # do not fail if we try to re-upload a package of the same version
+    - if [[ "$(cat exitcode.txt)" != 0 && -z "$(cat response.txt | grep "File name has already been taken")" ]];
+      then
+        exit 1;
       fi
