@@ -66,9 +66,8 @@ external-pypi:
 
 internal-pypi:
   stage: deploy
-  # TODO: remove before this hits master
-  # only:
-  #  - master
+  only:
+   - master
   script:
     - pip3 install twine wheel setuptools --upgrade
     - rm -rf build dist *.egg-info
