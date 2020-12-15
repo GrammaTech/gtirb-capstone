@@ -18,7 +18,7 @@ import gtirb_capstone
 @pytest.mark.commit
 def test_insert_bytes():
     ir = gtirb.IR()
-    m = gtirb.Module(isa=gtirb.Module.ISA.X64)
+    m = gtirb.Module(name="test", isa=gtirb.Module.ISA.X64)
     m.ir = ir
     s = gtirb.Section(name=".text")
     s.module = m
