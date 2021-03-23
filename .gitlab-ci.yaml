@@ -63,6 +63,7 @@ test_package:
   variables:
     GIT_STRATEGY: none
   stage: test_package
+  before_script: []
   script:
     - for f in dist/*.whl; do python3 -m pip install $f; done
 
