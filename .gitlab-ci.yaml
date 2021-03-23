@@ -1,7 +1,7 @@
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
   GIT_STRATEGY: clone
-  EXTRA_INDEX_URL: https://__token__:$GL_PKG_API_TOKEN@${CI_API_V4_URL}/projects/1587/packages/pypi/simple
+  EXTRA_INDEX_URL: "https://__token__:$GL_PKG_API_TOKEN@${CI_API_V4_URL}/projects/1587/packages/pypi/simple"
 
 stages:
   - check-format
