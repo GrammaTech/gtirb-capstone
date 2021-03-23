@@ -1,4 +1,4 @@
-FROM docker.grammatech.com/rewriting/gtirb/ubuntu18
+FROM ubuntu:18.04
 
 RUN apt-get update \
     && apt-get -y install \
@@ -13,10 +13,11 @@ RUN apt-get update \
     emacs-nox \
     slime \
     elpa-paredit \
-    unzip
+    unzip \
+    wget
 
 RUN python3 -m pip install --upgrade pip && \
-    python3 -m pip install pre-commit wheel tox
+    python3 -m pip install pkginfo pre-commit requests wheel tox twine
 
 # Install keystone
 RUN cd /tmp && \
