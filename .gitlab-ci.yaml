@@ -14,7 +14,7 @@ default:
   image: $DOCKER_REGISTRY/rewriting/gtirb-capstone
   tags: [cluster]
   before_script:
-    - pip install --extra-index-url=$EXTRA_INDEX_URL .
+    - pip install --pre --extra-index-url=$EXTRA_INDEX_URL .
 
 check-format:
   stage: check-format
