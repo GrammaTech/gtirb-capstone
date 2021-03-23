@@ -17,7 +17,9 @@ RUN apt-get update \
     wget
 
 RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install --upgrade keyrings.alt && \
     python3 -m pip install pkginfo pre-commit requests wheel tox twine
+
 
 # Install keystone
 RUN cd /tmp && \
