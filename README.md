@@ -36,7 +36,7 @@ You can create a virtual environment for development using tox:
 ```
 tox -e venv
 . venv/bin/activate
-``
+```
 
 This repository uses pre-commit to enforce code formatting. You should
 have pre-commit installed. To activate pre-commit in this repository run:

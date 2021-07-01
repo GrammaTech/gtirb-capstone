@@ -84,3 +84,33 @@ def test_arm_thumb_data_access():
     assert len(data_accesses) == 1
     assert data_accesses[0].type == AccessType.READ
     assert data_accesses[0].op_mem.disp == 48
+
+
+def test_mips32_big_endian():
+    m = gtirb.Module(name="test", byte_order=gtirb.Module.ByteOrder.Big)
+    s = gtirb.Section(name="")
+    s.module = m
+    bi = gtirb.ByteInterval(contents=b"\x00\x82\x20\x21")
+    bi.section = s
+    b = gtirb.CodeBlock(offset=0, size=4, decode_mode=0)
+    b.byte_interval = bi
+
+    decoder = GtirbInstructionDecoder(gtirb.Module.ISA.MIPS32)
+    insns = list(decoder.get_instructions(b))
+    assert len(insns) == 1
+    assert insns[0].mnemonic == "addu"
+
+
+def test_mips32_little_endian():
+    m = gtirb.Module(name="test", byte_order=gtirb.Module.ByteOrder.Little)
+    s = gtirb.Section(name="")
+    s.module = m
+    bi = gtirb.ByteInterval(contents=b"\x21\x20\x82\x00")
+    bi.section = s
+    b = gtirb.CodeBlock(offset=0, size=4, decode_mode=0)
+    b.byte_interval = bi
+
+    decoder = GtirbInstructionDecoder(gtirb.Module.ISA.MIPS32)
+    insns = list(decoder.get_instructions(b))
+    assert len(insns) == 1
+    assert insns[0].mnemonic == "addu"

@@ -104,6 +104,13 @@ class GtirbInstructionDecoder:
                 self._cs.mode = capstone_gt.CS_MODE_THUMB
             else:
                 self._cs.mode = capstone_gt.CS_MODE_ARM
+
+        if block.module is not None:
+            if block.module.byte_order == gtirb.module.Module.ByteOrder.Big:
+                self._cs.mode |= capstone_gt.CS_MODE_BIG_ENDIAN
+            else:
+                self._cs.mode &= ~capstone_gt.CS_MODE_BIG_ENDIAN
+
         addr = (
             block.byte_interval.address
             if block.byte_interval.address is not None
