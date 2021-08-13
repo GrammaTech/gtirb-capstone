@@ -45,6 +45,7 @@ if __name__ == "__main__":
                 "tox",
                 "tox-wheel",
                 "pre-commit",
+                "mcasm",
             ]
         },
         long_description=long_description,
