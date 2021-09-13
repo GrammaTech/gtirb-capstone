@@ -11,12 +11,12 @@
 #
 
 import gtirb
-import capstone
-import capstone.x86
-import capstone.arm64
-import capstone.arm
-import capstone.mips
-import capstone.ppc
+import capstone_gt
+import capstone_gt.x86
+import capstone_gt.arm64
+import capstone_gt.arm
+import capstone_gt.mips
+import capstone_gt.ppc
 from enum import Enum
 from typing import Iterator, List, Union
 from dataclasses import dataclass
@@ -31,19 +31,19 @@ class AccessType(Enum):
 
 # Union of all possible operands
 CapstoneOp = Union[
-    capstone.x86.X86Op,
-    capstone.arm.ArmOp,
-    capstone.arm64.Arm64Op,
-    capstone.mips.MipsOp,
-    capstone.ppc.PpcOp,
+    capstone_gt.x86.X86Op,
+    capstone_gt.arm.ArmOp,
+    capstone_gt.arm64.Arm64Op,
+    capstone_gt.mips.MipsOp,
+    capstone_gt.ppc.PpcOp,
 ]
 # Union of all possible memory operands
 CapstoneMemoryAccess = Union[
-    capstone.x86.X86OpMem,
-    capstone.arm.ArmOpMem,
-    capstone.arm64.Arm64OpMem,
-    capstone.mips.MipsOpMem,
-    capstone.ppc.PpcOpMem,
+    capstone_gt.x86.X86OpMem,
+    capstone_gt.arm.ArmOpMem,
+    capstone_gt.arm64.Arm64OpMem,
+    capstone_gt.mips.MipsOpMem,
+    capstone_gt.ppc.PpcOpMem,
 ]
 
 
@@ -61,31 +61,31 @@ class GtirbInstructionDecoder:
     """
 
     GTIRB_ISA_TO_CAPSTONE = {
-        gtirb.Module.ISA.ARM: capstone.CS_ARCH_ARM,
-        gtirb.Module.ISA.ARM64: capstone.CS_ARCH_ARM64,
-        gtirb.Module.ISA.MIPS32: capstone.CS_ARCH_MIPS,
-        gtirb.Module.ISA.MIPS64: capstone.CS_ARCH_MIPS,
-        gtirb.Module.ISA.PPC32: capstone.CS_ARCH_PPC,
-        gtirb.Module.ISA.PPC64: capstone.CS_ARCH_PPC,
-        gtirb.Module.ISA.IA32: capstone.CS_ARCH_X86,
-        gtirb.Module.ISA.X64: capstone.CS_ARCH_X86,
+        gtirb.Module.ISA.ARM: capstone_gt.CS_ARCH_ARM,
+        gtirb.Module.ISA.ARM64: capstone_gt.CS_ARCH_ARM64,
+        gtirb.Module.ISA.MIPS32: capstone_gt.CS_ARCH_MIPS,
+        gtirb.Module.ISA.MIPS64: capstone_gt.CS_ARCH_MIPS,
+        gtirb.Module.ISA.PPC32: capstone_gt.CS_ARCH_PPC,
+        gtirb.Module.ISA.PPC64: capstone_gt.CS_ARCH_PPC,
+        gtirb.Module.ISA.IA32: capstone_gt.CS_ARCH_X86,
+        gtirb.Module.ISA.X64: capstone_gt.CS_ARCH_X86,
     }
 
     GTIRB_ISA_TO_CAPSTONE_MODE = {
-        gtirb.Module.ISA.ARM: capstone.CS_MODE_ARM,
-        gtirb.Module.ISA.ARM64: capstone.CS_MODE_ARM,
-        gtirb.Module.ISA.MIPS32: capstone.CS_MODE_MIPS32,
-        gtirb.Module.ISA.MIPS64: capstone.CS_MODE_MIPS64,
-        gtirb.Module.ISA.PPC32: capstone.CS_MODE_32,
-        gtirb.Module.ISA.PPC64: capstone.CS_MODE_64,
-        gtirb.Module.ISA.IA32: capstone.CS_MODE_32,
-        gtirb.Module.ISA.X64: capstone.CS_MODE_64,
+        gtirb.Module.ISA.ARM: capstone_gt.CS_MODE_ARM,
+        gtirb.Module.ISA.ARM64: capstone_gt.CS_MODE_ARM,
+        gtirb.Module.ISA.MIPS32: capstone_gt.CS_MODE_MIPS32,
+        gtirb.Module.ISA.MIPS64: capstone_gt.CS_MODE_MIPS64,
+        gtirb.Module.ISA.PPC32: capstone_gt.CS_MODE_32,
+        gtirb.Module.ISA.PPC64: capstone_gt.CS_MODE_64,
+        gtirb.Module.ISA.IA32: capstone_gt.CS_MODE_32,
+        gtirb.Module.ISA.X64: capstone_gt.CS_MODE_64,
     }
 
     def __init__(self, arch: gtirb.Module.ISA):
 
         self._arch = arch
-        self._cs = capstone.Cs(
+        self._cs = capstone_gt.Cs(
             self.GTIRB_ISA_TO_CAPSTONE[self._arch],
             self.GTIRB_ISA_TO_CAPSTONE_MODE[self._arch],
         )
@@ -93,17 +93,17 @@ class GtirbInstructionDecoder:
 
     def get_instructions(
         self, block: gtirb.CodeBlock
-    ) -> Iterator[capstone.CsInsn]:
+    ) -> Iterator[capstone_gt.CsInsn]:
         """
-        Get capstone instructions of a basic block.
+        Get capstone_gt instructions of a basic block.
         Note: This function gets raw instructions, without
         taking into account symbolic expressions.
         """
         if self._arch == gtirb.Module.ISA.ARM:
             if block.decode_mode == 1:
-                self._cs.mode = capstone.CS_MODE_THUMB
+                self._cs.mode = capstone_gt.CS_MODE_THUMB
             else:
-                self._cs.mode = capstone.CS_MODE_ARM
+                self._cs.mode = capstone_gt.CS_MODE_ARM
         addr = (
             block.byte_interval.address
             if block.byte_interval.address is not None
@@ -118,25 +118,25 @@ class GtirbInstructionDecoder:
 
     def get_access_type(self, op: CapstoneOp) -> AccessType:
         """
-        Get the capstone operand's access type.
+        Get the capstone_gt operand's access type.
         """
-        if op.access == capstone.CS_AC_READ:
+        if op.access == capstone_gt.CS_AC_READ:
             return AccessType.READ
-        elif op.access == capstone.CS_AC_WRITE:
+        elif op.access == capstone_gt.CS_AC_WRITE:
             return AccessType.WRITE
-        elif op.access == capstone.CS_AC_READ | capstone.CS_AC_WRITE:
+        elif op.access == capstone_gt.CS_AC_READ | capstone_gt.CS_AC_WRITE:
             return AccessType.READ_WRITE
         return AccessType.UNKNOWN
 
     GTIRB_ISA_TO_CAPSTONE_MEM_OP = {
-        gtirb.Module.ISA.ARM: capstone.arm.ARM_OP_MEM,
-        gtirb.Module.ISA.ARM64: capstone.arm64.ARM64_OP_MEM,
-        gtirb.Module.ISA.MIPS32: capstone.mips.MIPS_OP_MEM,
-        gtirb.Module.ISA.MIPS64: capstone.mips.MIPS_OP_MEM,
-        gtirb.Module.ISA.PPC32: capstone.ppc.PPC_OP_MEM,
-        gtirb.Module.ISA.PPC64: capstone.ppc.PPC_OP_MEM,
-        gtirb.Module.ISA.IA32: capstone.x86.X86_OP_MEM,
-        gtirb.Module.ISA.X64: capstone.x86.X86_OP_MEM,
+        gtirb.Module.ISA.ARM: capstone_gt.arm.ARM_OP_MEM,
+        gtirb.Module.ISA.ARM64: capstone_gt.arm64.ARM64_OP_MEM,
+        gtirb.Module.ISA.MIPS32: capstone_gt.mips.MIPS_OP_MEM,
+        gtirb.Module.ISA.MIPS64: capstone_gt.mips.MIPS_OP_MEM,
+        gtirb.Module.ISA.PPC32: capstone_gt.ppc.PPC_OP_MEM,
+        gtirb.Module.ISA.PPC64: capstone_gt.ppc.PPC_OP_MEM,
+        gtirb.Module.ISA.IA32: capstone_gt.x86.X86_OP_MEM,
+        gtirb.Module.ISA.X64: capstone_gt.x86.X86_OP_MEM,
     }
 
     def get_memory_accesses(
@@ -145,7 +145,7 @@ class GtirbInstructionDecoder:
         """
         Get memory accesses of a basic block.
         Each memory access has an addr, an access type and the
-        capstone memory operand.
+        capstone_gt memory operand.
 
         NOTE: The address of the memory access is the address
         of the displacement in x86/x64 but it is the address

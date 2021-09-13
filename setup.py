@@ -30,7 +30,7 @@ if __name__ == "__main__":
         description="Utilities for rewriting GTIRB with capstone and keystone",
         packages=setuptools.find_packages(),
         install_requires=[
-            "capstone",
+            "capstone-gt",
             "dataclasses ; python_version<'3.7.0'",
             "gtirb",
             "keystone-engine",
