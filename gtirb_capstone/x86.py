@@ -84,7 +84,10 @@ def symbolic_expression_to_str(
         raise NotImplementedError("SymAddrAddr not supported")
 
     else:
-        assert False, "Unsupported symbolic expression type"
+        # GTIRB only currently has two symbolic expression types, so it
+        # shouldn't be possible to hit this -- but if we do hit here we need
+        # to raise an exception instead of silently doing nothing.
+        raise TypeError("Unsupported symbolic expression type")
 
 
 def mem_access_to_str(
@@ -154,7 +157,8 @@ def operand_to_str(
     :param syntax: The assembly syntax to generate for. Only Intel is
            currently supported.
     """
-    assert op in inst.operands
+    if op not in inst.operands:
+        raise ValueError("operand is not in the instruction")
 
     if syntax != capstone.CS_OPT_SYNTAX_INTEL:
         raise NotImplementedError("only Intel syntax is currently supported")
@@ -171,8 +175,13 @@ def operand_to_str(
         return f"{size} ptr {mem}"
 
     if op.type == capstone.x86.X86_OP_REG:
-        assert not extra_offset
-        assert not sym_expr
+        if extra_offset:
+            raise ValueError(
+                "extra_offset cannot be used with register operands"
+            )
+        if sym_expr:
+            raise ValueError("sym_expr cannot be used with register operands")
+
         return inst.reg_name(op.reg)
 
     if op.type == capstone.x86.X86_OP_IMM:
@@ -205,7 +214,9 @@ def operand_symbolic_expression(
     elif isinstance(parent, gtirb.ByteInterval):
         interval = parent
 
-    assert interval
+    if not interval:
+        raise ValueError("parent must be in a byte interval")
+
     if interval.address:
         inst_offset = inst.address - interval.address
     else:
