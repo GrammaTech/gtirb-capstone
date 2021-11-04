@@ -1,12 +1,10 @@
 # 1.0.2 (Unreleased)
 
-* TBD
+* Added big endian decoding
 
 # 1.0.1
 
 * Switched to GrammaTech's Python capstone package (capstone-gt)
-
-* Added big endian decoding
 
 # 1.0.0
 
