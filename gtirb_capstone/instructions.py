@@ -108,8 +108,14 @@ class GtirbInstructionDecoder:
         if block.module is not None:
             if block.module.byte_order == gtirb.module.Module.ByteOrder.Big:
                 self._cs.mode |= capstone_gt.CS_MODE_BIG_ENDIAN
-            else:
+            elif (
+                block.module.byte_order == gtirb.module.Module.ByteOrder.Little
+            ):
                 self._cs.mode &= ~capstone_gt.CS_MODE_BIG_ENDIAN
+            else:
+                raise ValueError(
+                    f"Cannot decode byte order {block.module.byte_order}"
+                )
 
         addr = (
             block.byte_interval.address

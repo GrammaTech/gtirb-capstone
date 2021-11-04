@@ -6,6 +6,8 @@
 
 * Switched to GrammaTech's Python capstone package (capstone-gt)
 
+* Added big endian decoding
+
 # 1.0.0
 
 * Initial version

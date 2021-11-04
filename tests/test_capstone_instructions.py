@@ -114,3 +114,18 @@ def test_mips32_little_endian():
     insns = list(decoder.get_instructions(b))
     assert len(insns) == 1
     assert insns[0].mnemonic == "addu"
+
+
+def test_mips32_unknown_endian_fail():
+    m = gtirb.Module(name="test", byte_order=gtirb.Module.ByteOrder.Undefined)
+    s = gtirb.Section(name="")
+    s.module = m
+    bi = gtirb.ByteInterval(contents=b"\x21\x20\x82\x00")
+    bi.section = s
+    b = gtirb.CodeBlock(offset=0, size=4, decode_mode=0)
+    b.byte_interval = bi
+
+    decoder = GtirbInstructionDecoder(gtirb.Module.ISA.MIPS32)
+
+    with pytest.raises(ValueError):
+        decoder.get_instructions(b)
