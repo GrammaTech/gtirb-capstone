@@ -14,7 +14,7 @@
 Utilities for converting Capstone operands to assembly strings.
 """
 
-import capstone
+import capstone_gt
 import gtirb
 from typing import Optional, Union
 
@@ -54,7 +54,7 @@ def symbolic_expression_to_str(
     expr: gtirb.SymbolicExpression,
     *,
     extra_offset: int = 0,
-    syntax: int = capstone.CS_OPT_SYNTAX_INTEL,
+    syntax: int = capstone_gt.CS_OPT_SYNTAX_INTEL,
 ) -> str:
     """
     Converts a symbolic expression to an equivalent assembly string.
@@ -63,7 +63,7 @@ def symbolic_expression_to_str(
     :param syntax: The assembly syntax to generate for. Only Intel is
            currently supported.
     """
-    if syntax != capstone.CS_OPT_SYNTAX_INTEL:
+    if syntax != capstone_gt.CS_OPT_SYNTAX_INTEL:
         raise NotImplementedError("only Intel syntax is currently supported")
 
     # TODO: Deal with symbolic expression attributes
@@ -91,12 +91,12 @@ def symbolic_expression_to_str(
 
 
 def mem_access_to_str(
-    inst: capstone.CsInsn,
-    mem: capstone.x86.X86OpMem,
+    inst: capstone_gt.CsInsn,
+    mem: capstone_gt.x86.X86OpMem,
     sym_expr: Optional[gtirb.SymbolicExpression],
     *,
     extra_displacement: int = 0,
-    syntax: int = capstone.CS_OPT_SYNTAX_INTEL,
+    syntax: int = capstone_gt.CS_OPT_SYNTAX_INTEL,
 ) -> str:
     """
     Converts a Capstone memory reference into an equivalent assembly string.
@@ -107,14 +107,14 @@ def mem_access_to_str(
     :param syntax: The assembly syntax to generate for. Only Intel is
            currently supported.
     """
-    if syntax != capstone.CS_OPT_SYNTAX_INTEL:
+    if syntax != capstone_gt.CS_OPT_SYNTAX_INTEL:
         raise NotImplementedError("only Intel syntax is currently supported")
 
     fields = []
-    if mem.base != capstone.x86.X86_REG_INVALID:
+    if mem.base != capstone_gt.x86.X86_REG_INVALID:
         fields.append(inst.reg_name(mem.base))
 
-    if mem.index != capstone.x86.X86_REG_INVALID:
+    if mem.index != capstone_gt.x86.X86_REG_INVALID:
         index_and_scale = inst.reg_name(mem.index)
         if mem.scale != 1:
             index_and_scale += "*" + str(mem.scale)
@@ -132,19 +132,19 @@ def mem_access_to_str(
         fields.append("0")
 
     segment = ""
-    if mem.segment != capstone.x86.X86_REG_INVALID:
+    if mem.segment != capstone_gt.x86.X86_REG_INVALID:
         segment = inst.reg_name(mem.segment) + ":"
 
     return f"{segment}[" + " + ".join(fields) + "]"
 
 
 def operand_to_str(
-    inst: capstone.CsInsn,
-    op: capstone.x86.X86Op,
+    inst: capstone_gt.CsInsn,
+    op: capstone_gt.x86.X86Op,
     sym_expr: Optional[gtirb.SymbolicExpression],
     *,
     extra_offset: int = 0,
-    syntax: int = capstone.CS_OPT_SYNTAX_INTEL,
+    syntax: int = capstone_gt.CS_OPT_SYNTAX_INTEL,
 ) -> str:
     """
     Converts a Capstone operand into an equivalent assembly string.
@@ -160,10 +160,10 @@ def operand_to_str(
     if op not in inst.operands:
         raise ValueError("operand is not in the instruction")
 
-    if syntax != capstone.CS_OPT_SYNTAX_INTEL:
+    if syntax != capstone_gt.CS_OPT_SYNTAX_INTEL:
         raise NotImplementedError("only Intel syntax is currently supported")
 
-    if op.type == capstone.x86.X86_OP_MEM:
+    if op.type == capstone_gt.x86.X86_OP_MEM:
         mem = mem_access_to_str(
             inst,
             op.mem,
@@ -174,7 +174,7 @@ def operand_to_str(
         size = operand_size_to_str(op.size)
         return f"{size} ptr {mem}"
 
-    if op.type == capstone.x86.X86_OP_REG:
+    if op.type == capstone_gt.x86.X86_OP_REG:
         if extra_offset:
             raise ValueError(
                 "extra_offset cannot be used with register operands"
@@ -184,7 +184,7 @@ def operand_to_str(
 
         return inst.reg_name(op.reg)
 
-    if op.type == capstone.x86.X86_OP_IMM:
+    if op.type == capstone_gt.x86.X86_OP_IMM:
         if sym_expr:
             expr_str = symbolic_expression_to_str(
                 sym_expr, extra_offset=extra_offset
@@ -200,8 +200,8 @@ def operand_to_str(
 
 def operand_symbolic_expression(
     parent: Union[gtirb.CodeBlock, gtirb.ByteInterval],
-    inst: capstone.CsInsn,
-    op: capstone.x86.X86Op,
+    inst: capstone_gt.CsInsn,
+    op: capstone_gt.x86.X86Op,
 ) -> Optional[gtirb.SymbolicExpression]:
     """
     Gets the symbolic expression, if any, associated with an operand.
@@ -222,12 +222,12 @@ def operand_symbolic_expression(
     else:
         inst_offset = inst.address
 
-    if op.type == capstone.x86.X86_OP_MEM:
+    if op.type == capstone_gt.x86.X86_OP_MEM:
         return interval.symbolic_expressions.get(
             inst_offset + inst.disp_offset, None
         )
 
-    if op.type == capstone.x86.X86_OP_IMM:
+    if op.type == capstone_gt.x86.X86_OP_IMM:
         return interval.symbolic_expressions.get(
             inst_offset + inst.imm_offset, None
         )
