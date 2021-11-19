@@ -5,6 +5,7 @@ __pycache__/
 /*.egg-info/
 /build/
 /dist/
+.tox/
 
 # IDE files and directories
 /.vscode/
@@ -15,3 +16,7 @@ vgcore.*
 
 # Common Lisp files
 *.fasl
+
+# Coverage artifacts
+htmlcov/
+.coverage
