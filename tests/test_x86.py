@@ -10,7 +10,7 @@
 # endorsement should be inferred.
 #
 
-import capstone
+import capstone_gt
 import mcasm
 import gtirb
 from gtirb_capstone.instructions import GtirbInstructionDecoder
@@ -19,7 +19,7 @@ import pytest
 
 
 def assemble_and_decode_one(asm):
-    cs = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_64)
+    cs = capstone_gt.Cs(capstone_gt.CS_ARCH_X86, capstone_gt.CS_MODE_64)
     cs.detail = True
 
     assembler = mcasm.Assembler("x86_64-unknown-linux-gnu")
