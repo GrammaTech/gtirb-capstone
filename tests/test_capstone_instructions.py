@@ -52,7 +52,9 @@ def test_arm_instruction():
 def test_arm_thumb_instruction():
     # add r3, pc
     bi = gtirb.ByteInterval(contents=b"\x7b\x44")
-    b = gtirb.CodeBlock(offset=0, size=2, decode_mode=gtirb.CodeBlock.DecodeMode.Thumb)
+    b = gtirb.CodeBlock(
+        offset=0, size=2, decode_mode=gtirb.CodeBlock.DecodeMode.Thumb
+    )
     b.byte_interval = bi
     decoder = GtirbInstructionDecoder(gtirb.Module.ISA.ARM)
     insns = list(decoder.get_instructions(b))
@@ -79,7 +81,9 @@ def test_x64_data_access():
 def test_arm_thumb_data_access():
     # ldr	r6, [pc, #48]
     bi = gtirb.ByteInterval(contents=b"\x0c\x4e")
-    b = gtirb.CodeBlock(offset=0, size=2, decode_mode=gtirb.CodeBlock.DecodeMode.Thumb)
+    b = gtirb.CodeBlock(
+        offset=0, size=2, decode_mode=gtirb.CodeBlock.DecodeMode.Thumb
+    )
     b.byte_interval = bi
     decoder = GtirbInstructionDecoder(gtirb.Module.ISA.ARM)
     data_accesses = list(decoder.get_memory_accesses(b))
