@@ -100,7 +100,7 @@ class GtirbInstructionDecoder:
         taking into account symbolic expressions.
         """
         if self._arch == gtirb.Module.ISA.ARM:
-            if block.decode_mode == 1:
+            if block.decode_mode == gtirb.CodeBlock.DecodeMode.Thumb:
                 self._cs.mode = capstone_gt.CS_MODE_THUMB
             else:
                 self._cs.mode = capstone_gt.CS_MODE_ARM
