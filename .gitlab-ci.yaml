@@ -77,8 +77,6 @@ export_external:
     # Do not publish .dev versions on the public pypi
     - if [[ "$VERSION" =~ \.dev[[:digit:]]*.*$ ]]; then exit 1; fi
     - python3 -m twine upload --verbose $CI_PROJECT_DIR/dist/*.whl -u __token__ -p $PYPI_API_KEY
-  tags:
-    - shared
   rules:
     - if: '$CI_COMMIT_REF_NAME =~ /^release-.*/'
 
@@ -114,9 +112,6 @@ export_internal:
     - wget ${CI_SERVER_HOST}/research/templates/python-module/raw/master/.pypirc
     - sed "s/password = <access token>/password = $GL_PKG_API_TOKEN/" $CI_PROJECT_DIR/.pypirc > ~/.pypirc
     - python3 -m twine upload --verbose --repository repypi $CI_PROJECT_DIR/dist/*.whl
-
-  tags:
-    - shared
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
     - if: '$CI_COMMIT_REF_NAME =~ /^release-.*/'
