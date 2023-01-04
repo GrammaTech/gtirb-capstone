@@ -12,7 +12,7 @@ stages:
 
 default:
   image: $DOCKER_REGISTRY/rewriting/gtirb-capstone
-  tags: [cluster]
+  tags: [shared]
   before_script:
     - pip install --pre --extra-index-url=$EXTRA_INDEX_URL .
 
