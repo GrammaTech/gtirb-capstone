@@ -78,7 +78,7 @@ export_external:
     - if [[ "$VERSION" =~ \.dev[[:digit:]]*.*$ ]]; then exit 1; fi
     - python3 -m twine upload --verbose $CI_PROJECT_DIR/dist/*.whl -u __token__ -p $PYPI_API_KEY
   tags:
-    - kubernetes
+    - shared
   rules:
     - if: '$CI_COMMIT_REF_NAME =~ /^release-.*/'
 
@@ -116,7 +116,7 @@ export_internal:
     - python3 -m twine upload --verbose --repository repypi $CI_PROJECT_DIR/dist/*.whl
 
   tags:
-    - kubernetes
+    - shared
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
     - if: '$CI_COMMIT_REF_NAME =~ /^release-.*/'
