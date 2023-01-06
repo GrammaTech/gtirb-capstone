@@ -42,7 +42,7 @@
                         (ecase (isa module)
                           (:x64 :64)
                           (:ia32 :32)
-                          (:arm :arm)
+                          (:arm (arm-decode-mode object))
                           (:ppc32 :32)
                           (:ppc64 :64))))
 
@@ -57,7 +57,7 @@
                         (ecase (isa module)
                           (:x64 :64)
                           (:ia32 :32)
-                          (:arm :arm)
+                          (:arm (arm-decode-mode object))
                           (:ppc32 :ppc32)
                           (:ppc64 :ppc64)))))))
 
@@ -96,6 +96,14 @@ in engine creation.")
     (if (eq (byte-order module) :big-endian)
         :big_endian
         :little_endian)))
+
+(defgeneric arm-decode-mode (object)
+  (:documentation "Return the arm decode mode to use for OBJECT
+in engine creation.")
+  (:method ((object gtirb-node))
+    :arm)
+  (:method ((object code-block) &aux (decode-mode (decode-mode object)))
+    (if (and decode-mode (zerop decode-mode)) :arm :thumb)))
 
 ;;;; Main test suite.
 (defsuite test)
