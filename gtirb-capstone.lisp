@@ -33,36 +33,38 @@
 
 (defgeneric start-engines (object)
   (:documentation "Startup Capstone and Keystone engines for OBJECT.")
-  (:method ((object gtirb))
+  (:method ((object gtirb) &aux (module (first (modules object))))
     (or (gethash (uuid object) *engines*)
         (setf (gethash (uuid object) *engines*)
               (cons (make-instance 'capstone-engine
-                      :architecture (ecase (isa (first (modules object)))
+                      :architecture (ecase (isa module)
                                       (:x64 :x86)
                                       (:ia32 :x86)
                                       (:arm :arm)
                                       (:ppc32 :ppc)
                                       (:ppc64 :ppc))
-                      :mode (ecase (isa (first (modules object)))
-                              (:x64 :64)
-                              (:ia32 :32)
-                              (:arm :arm)
-                              (:ppc32 '(:big_endian :32))
-                              (:ppc64 :64)))
+                      :mode (list (engine-endianness module)
+                                  (ecase (isa module)
+                                    (:x64 :64)
+                                    (:ia32 :32)
+                                    (:arm :arm)
+                                    (:ppc32 :32)
+                                    (:ppc64 :64))))
 
                     (make-instance 'keystone-engine
-                      :architecture (ecase (isa (first (modules object)))
+                      :architecture (ecase (isa modules)
                                       (:x64 :x86)
                                       (:ia32 :x86)
                                       (:arm :arm)
                                       (:ppc32 :ppc)
                                       (:ppc64 :ppc))
-                      :mode (ecase (isa (first (modules object)))
-                              (:x64 :64)
-                              (:ia32 :32)
-                              (:arm :arm)
-                              (:ppc32 '(:ppc32 :big_endian))
-                              (:ppc64 :ppc64))))))))
+                      :mode (list (engine-endianness module)
+                                  (ecase (isa module)
+                                    (:x64 :64)
+                                    (:ia32 :32)
+                                    (:arm :arm)
+                                    (:ppc32 :ppc32)
+                                    (:ppc64 :ppc64)))))))))
 
 (defgeneric instructions (object)
   (:documentation "Access the assembly instructions for OBJECT.")
@@ -91,6 +93,14 @@
                                        (list :address address))
                                      (when count-p
                                        (list :count count))))))
+
+(defgeneric engine-endianness (module)
+  (:documentation "Return the endianness to use for MODULE
+in engine creation.")
+  (:method ((module module))
+    (if (eq (byte-order module) :big-endian)
+        :big_endian
+        :little_endian)))
 
 ;;;; Main test suite.
 (defsuite test)
