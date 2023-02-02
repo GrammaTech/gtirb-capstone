@@ -55,6 +55,20 @@ class MemoryAccess:
     op_mem: CapstoneMemoryAccess
 
 
+def _block_endian_flag(block: gtirb.CodeBlock) -> int:
+    """
+    Get the capstone endianness flag for a block
+    """
+    if block.module is None:
+        return 0
+    if block.module.byte_order == gtirb.module.Module.ByteOrder.Big:
+        return capstone_gt.CS_MODE_BIG_ENDIAN
+    elif block.module.byte_order == gtirb.module.Module.ByteOrder.Little:
+        return 0
+    else:
+        raise ValueError(f"Cannot decode byte order {block.module.byte_order}")
+
+
 class GtirbInstructionDecoder:
     """
     Class to obtain instruction information of gtirb basic blocks.
@@ -85,9 +99,9 @@ class GtirbInstructionDecoder:
     def __init__(self, arch: gtirb.Module.ISA):
 
         self._arch = arch
+        self._arch_mode = self.GTIRB_ISA_TO_CAPSTONE_MODE[self._arch]
         self._cs = capstone_gt.Cs(
-            self.GTIRB_ISA_TO_CAPSTONE[self._arch],
-            self.GTIRB_ISA_TO_CAPSTONE_MODE[self._arch],
+            self.GTIRB_ISA_TO_CAPSTONE[self._arch], self._arch_mode,
         )
         self._cs.detail = True
 
@@ -99,35 +113,37 @@ class GtirbInstructionDecoder:
         Note: This function gets raw instructions, without
         taking into account symbolic expressions.
         """
+        block_addr = block.address or block.offset
         if self._arch == gtirb.Module.ISA.ARM:
+            # On ARM, we try all combinations of decode modes until one decodes
+            # the entire block.
             if block.decode_mode == gtirb.CodeBlock.DecodeMode.Thumb:
-                self._cs.mode = capstone_gt.CS_MODE_THUMB
+                mode = capstone_gt.CS_MODE_THUMB
+                opts = (
+                    capstone_gt.CS_MODE_V8,
+                    0,
+                    capstone_gt.CS_MODE_V8 | capstone_gt.CS_MODE_MCLASS,
+                    capstone_gt.CS_MODE_MCLASS,
+                )
             else:
-                self._cs.mode = capstone_gt.CS_MODE_ARM
+                mode = capstone_gt.CS_MODE_ARM
+                opts = (capstone_gt.CS_MODE_V8, 0)
 
-        if block.module is not None:
-            if block.module.byte_order == gtirb.module.Module.ByteOrder.Big:
-                self._cs.mode |= capstone_gt.CS_MODE_BIG_ENDIAN
-            elif (
-                block.module.byte_order == gtirb.module.Module.ByteOrder.Little
-            ):
-                self._cs.mode &= ~capstone_gt.CS_MODE_BIG_ENDIAN
+            endian = _block_endian_flag(block)
+            for opt in opts:
+                self._cs.mode = mode | endian | opt
+                insns = list(self._cs.disasm(block.contents, block_addr))
+
+                if sum(insn.size for insn in insns) == block.size:
+                    return (insn for insn in insns)
             else:
                 raise ValueError(
-                    f"Cannot decode byte order {block.module.byte_order}"
+                    f"Cannot decode the complete block at 0x{block_addr:x}"
                 )
 
-        addr = (
-            block.byte_interval.address
-            if block.byte_interval.address is not None
-            else 0
-        )
-        return self._cs.disasm(
-            block.byte_interval.contents[
-                block.offset : block.offset + block.size
-            ],
-            addr + block.offset,
-        )
+        else:
+            self._cs.mode = self._arch_mode | _block_endian_flag(block)
+            return self._cs.disasm(block.contents, block_addr)
 
     def get_access_type(self, op: CapstoneOp) -> AccessType:
         """
