@@ -35,31 +35,27 @@ def test_x64_instructions():
 
 
 @pytest.mark.commit
-def test_arm_instruction():
-    # add r3, pc ,r3
-    bi = gtirb.ByteInterval(contents=b"\x03\x30\x8f\xe0")
-    b = gtirb.CodeBlock(
-        offset=0, size=4, decode_mode=gtirb.CodeBlock.DecodeMode.Default
-    )
+@pytest.mark.parametrize(
+    ("mode", "code", "mnemonic"),
+    [
+        # ARM: add r3, pc ,r3
+        (gtirb.CodeBlock.DecodeMode.Default, b"\x03\x30\x8f\xe0", "add"),
+        # Thumb: add r3, pc
+        (gtirb.CodeBlock.DecodeMode.Thumb, b"\x7b\x44", "add"),
+        # ARM (v7): ldcl p1, c0, [r0], #8
+        (gtirb.CodeBlock.DecodeMode.Default, b"\x02\x01\xf0\xec", "ldcl"),
+        # Thumb (Cortex-M)
+        (gtirb.CodeBlock.DecodeMode.Thumb, b"\xef\xf3\x08\x83", "mrs"),
+    ],
+)
+def test_arm_instructions(mode, code, mnemonic):
+    bi = gtirb.ByteInterval(contents=code)
+    b = gtirb.CodeBlock(offset=0, size=len(code), decode_mode=mode)
     b.byte_interval = bi
     decoder = GtirbInstructionDecoder(gtirb.Module.ISA.ARM)
     insns = list(decoder.get_instructions(b))
     assert len(insns) == 1
-    assert insns[0].mnemonic == "add"
-
-
-@pytest.mark.commit
-def test_arm_thumb_instruction():
-    # add r3, pc
-    bi = gtirb.ByteInterval(contents=b"\x7b\x44")
-    b = gtirb.CodeBlock(
-        offset=0, size=2, decode_mode=gtirb.CodeBlock.DecodeMode.Thumb
-    )
-    b.byte_interval = bi
-    decoder = GtirbInstructionDecoder(gtirb.Module.ISA.ARM)
-    insns = list(decoder.get_instructions(b))
-    assert len(insns) == 1
-    assert insns[0].mnemonic == "add"
+    assert insns[0].mnemonic == mnemonic
 
 
 def test_x64_data_access():
