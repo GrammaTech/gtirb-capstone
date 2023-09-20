@@ -1,6 +1,10 @@
-# 1.0.2 (Unreleased)
+# 1.0.3 (Unreleased)
+
+# 1.0.2
 
 * Added big endian decoding
+* Added support for GTIRB DecodeMode enum
+* Added ARM thumb mode decoding
 
 # 1.0.1
 
